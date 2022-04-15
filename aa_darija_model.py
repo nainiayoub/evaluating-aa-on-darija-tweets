@@ -69,9 +69,9 @@ def prepare_tweets(data_path_darija, authors_darija, gram, nb_authors):
     # Get data
     data, target = group_data(data_path_darija, authors_darija, nb_authors)
     print("Data grouped ... ")
-    # Clean data
-    data = clean_data_list(data)
-    print("Data Cleaned ...")
+    # Clean data is not needed - that's why the lines below are commented
+    # data = clean_data_list(data)
+    # print("Data Cleaned ...")
     # Get grams
     grammed_data = get_grams_data_list(data, gram)
     print("Data grammed ...")
@@ -97,6 +97,40 @@ def vect_grams(data):
     all_vect_data.append(vect_text)
   
   return all_vect_data
+
+# This is the one
+# Getting k-skip n-grams vectorization of text
+def vect_norm_grams(data):
+    # get k-skip-ngrams with their count from grams
+    k_skip_data = [getcount_ksngrams(i, k=0, n=1, normalize=True) for i in data]
+
+    # get the keys of k_skip_data
+    features_key = {}
+    for g in range(0, len(data)):
+    for k in k_skip_data[g].keys():
+        # Storing all keys (gram tokens)
+        features_key[k] = 0
+
+
+    # print(len(features_key.keys()))
+    returned_data = []
+    X = []
+
+    for g in range(0, len(data)):
+        X_row = []
+        # the lenght if text vector would be equal to the length of features_key
+        # the element takes the frequency value if the key is in the gram: 0 else
+        for f in features_key.keys():
+            if f in data[g][0]:
+                X_row.append(k_skip_data[g][f])
+            else:
+                X_row.append(0)
+
+        # appending text rows into X dict
+        X.append(X_row)
+        print(len(X))
+
+    return X
 
 def aa_rfs_model(data, target):
     # split data
