@@ -76,8 +76,8 @@ def prepare_tweets(data_path_darija, authors_darija, gram, nb_authors):
     grammed_data = get_grams_data_list(data, gram)
     print("Data grammed ...")
     # Join grams tokens
-    data_grm = join_tokens(grammed_data)
-    print("Data joined ...")
+    # data_grm = join_tokens(grammed_data)
+    # print("Data joined ...")
 
     return data_grm, target
 
