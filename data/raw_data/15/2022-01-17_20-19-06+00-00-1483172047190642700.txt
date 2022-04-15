@@ -1,0 +1,6 @@
+How to calculate your #twitter_score:
+A: number of your tweets
+B: number of your followers
+Your TS = A/B
+
+The less… https://t.co/lkjc0dwv6e
