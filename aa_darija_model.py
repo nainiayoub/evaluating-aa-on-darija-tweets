@@ -100,16 +100,17 @@ def vect_grams(data):
 
 # This is the one
 # Getting k-skip n-grams vectorization of text
-def vect_norm_grams(data):
+# this is the one
+def vect_norm_grams(data, skips, ng, l):
     # get k-skip-ngrams with their count from grams
-    k_skip_data = [getcount_ksngrams(i, k=0, n=1, normalize=True) for i in data]
-
-    # get the keys of k_skip_data
+    k_skip_data = [getcount_ksngrams(i, k=skips, n=ng, minfreq=l, normalize=True) for i in data]
+    # print(k_skip_data)
+    # get the keys of the dictionary
     features_key = {}
     for g in range(0, len(data)):
-    for k in k_skip_data[g].keys():
-        # Storing all keys (gram tokens)
-        features_key[k] = 0
+        for k in k_skip_data[g].keys():
+            # Storing all keys (gram tokens)
+            features_key[k] = 0
 
 
     # print(len(features_key.keys()))
@@ -118,17 +119,17 @@ def vect_norm_grams(data):
 
     for g in range(0, len(data)):
         X_row = []
-        # the lenght if text vector would be equal to the length of features_key
-        # the element takes the frequency value if the key is in the gram: 0 else
         for f in features_key.keys():
-            if f in data[g][0]:
-                X_row.append(k_skip_data[g][f])
+            if f in k_skip_data[g]:
+            # print(f)
+            tkn_gram = k_skip_data[g][f]
+            # print(tkn_gram)
+            X_row.append(tkn_gram)
             else:
-                X_row.append(0)
-
-        # appending text rows into X dict
+            X_row.append(0)
+            
         X.append(X_row)
-        print(len(X))
+    # print("Features length: ", len(X))
 
     return X
 
