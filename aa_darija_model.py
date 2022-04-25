@@ -1,14 +1,20 @@
-import os
+# imports 
+import numpy as np
 import pandas as pd
-import re
+import itertools
 from fextractorRefactored import get_grams, getcount_ksngrams
-from sklearn.model_selection import train_test_split
 from sklearn.feature_extraction.text import CountVectorizer, TfidfVectorizer
 from sklearn.ensemble import RandomForestClassifier
+from sklearn import datasets
+import os
+from os import listdir
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
-import time
+
 
 data_path_darija = './data/'
+# create a folder data_uas and place chunkified uae data from kit 30 dataset - https://gitlab.com/mmaakh/kit-30
+data_path_uae = './data_uae/'
 authors_darija = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30']
 
 # Loading author tweets and target values into lists
@@ -167,16 +173,118 @@ def aa_rfs_model(data, target):
     print("Accuracy: {}% | Precision: {}% | Recall: {}% | F-score: {}".format(accuracy, precision, recall, fscore))
     print("Confusion matrix: \n", confusionMatrix)
 
+# return the accuracies for all authors combinations of input parameters
+def evaluate_combination(data_path, k, l, n, nb_authors, gram):
+
+    # list params
+    k_list = []
+    l_list = []
+    n_list = []
+    grams_list = []
+    nb_authors_list = []
+
+    # metrics
+    accuracy_list = []
+    precision_list = []
+    recall_list = []
+    fscore_list = []
+
+    grams_type = [gram]
+
+    # authors
+    authors_uae = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30']
+
+    # authors combinations
+    authors_combinations = list(itertools.combinations(authors_uae, nb_authors))
+    print("Authors space: ", nb_authors,"| Total combinations: ", len(authors_combinations))
+
+    # looping through the authors combination to train the model
+    for combination in range(0, len(authors_combinations)):
+        authors_train = list(authors_combinations[combination])
+        print("Authors to train: ",authors_train, " | Combination number: ", combination+1, " | Combinations left: ", len(authors_combinations)-(combination+1))
+
+        # group data
+        data, target = group_data(data_path, authors_train, nb_authors)
+        print("Data grouped | Total authors: ", len(authors_train), " | Authors: ", authors_train)
+
+        for gram in grams_type:
+            print("Append K, L, N, gram and number of authors")
+            grams_list.append(gram)
+            l_list.append(l)
+            n_list.append(n)
+            k_list.append(k)
+            nb_authors_list.append(nb_authors)
+
+            print("Gramming data: ", gram)
+            grammed_data = get_grams_data_list(data, gram)
+            print("Grammed data: ", len(grammed_data), " | Target: ", len(target))
+            print("Grammed tweet 1:", grammed_data[0])
+
+            # vectorize data
+            print("Vectorizing data")
+            features_data = vect_norm_grams(grammed_data, k, n, l)
+            print("Data vectorized")
+
+            # building model
+            print("__________________________________________________________")
+            print("Gram={}, k={}, n={}, l={}, nb_autors={}".format(gram, k, n, l, nb_authors))
+            # split data
+            print("Data splitting ...")
+            X_train, X_test, Y_train, Y_test = train_test_split(features_data, target, test_size=0.2)
+
+            # model tarining
+            print("Training model ...")
+            clf = RandomForestClassifier(n_estimators=1000, n_jobs=-1)
+            clf.fit(X_train, Y_train)
+
+            # evaluate 
+            print("Evaluating ...")
+            testPredictions = clf.predict(X_test)
+            # testPredictionsProbs = clf.predict_proba(X_test)
+            # Calculate metrics
+            # Calculate metrics
+            accuracy = round(accuracy_score(Y_test, testPredictions) * 100, 2)
+            precision = round(precision_score(Y_test, testPredictions, average = 'macro') * 100, 2)
+            recall = round(recall_score(Y_test, testPredictions, average = 'macro') * 100, 2)
+            fscore = round(f1_score(Y_test, testPredictions, average = 'macro') * 100, 2)
+            confusionMatrix = confusion_matrix(Y_test, testPredictions)
+
+            # save metircs
+            fscore_list.append(fscore)
+            precision_list.append(precision)
+            recall_list.append(recall)
+            accuracy_list.append(accuracy)
+            print("Metrics added ...")
+            print(accuracy_list)
+
+    print("Create dataframe of results ... ")
+    df = pd.DataFrame(list(zip(l_list, k_list, n_list, grams_list, nb_authors_list, accuracy_list, precision_list, recall_list, fscore_list)),
+                columns =['l', 'k', 'n', 'Gram', 'Total Authors', 'Accuracy', 'Precision', 'Recall', 'F-score'])
+
+    print("Save dataframe of results ... ")
+    df.to_csv("./evaluation/authors3_k"+str(k)+"_n+"+str(n)+"+_l+"+str(l)+"+_+"gram"+.csv")
+    print("Datframe saved ...")
+    print(df)
 
 # Implementation
-
+# -----------------------------------------------------------------------------------------------
 # gram: pos, word, word-pos
-gram = 'word-pos'
+# gram = 'word-pos'
+# nb_authors = 4
+# tic = time.time()
+# # prepare tweets data
+# data, target = prepare_tweets(data_path_darija, authors_darija, gram, nb_authors)
+# # print(data[:10])
+# aa_rfs_model(data, target)
+# toc = time.time()
+# print("Execution time:", str(1000*(toc-tic)) + "ms")
+# -----------------------------------------------------------------------------------------------
+# buid and evalute models
+# grams = word, k=0, l=1, n=1, authors space = 4
+data_path = './data/'
+n = 1
+k = 0
+l = 1
 nb_authors = 4
-tic = time.time()
-# prepare tweets data
-data, target = prepare_tweets(data_path_darija, authors_darija, gram, nb_authors)
-# print(data[:10])
-aa_rfs_model(data, target)
-toc = time.time()
-print("Execution time:", str(1000*(toc-tic)) + "ms")
+gram = 'word'
+evaluate_combination(data_path, k, l, n, nb_authors, gram)
