@@ -48,6 +48,26 @@ def group_data(path, authors, nb_authors):
         # returning list of all tweets with list of target values (authors)
         return all_tweets, y
 
+def group_data_folder(data_path, authors, nb_authors):
+  text_data = []
+  y = [] 
+  # authors
+  # authors = listdir(data_path)[:nb_authors]
+  for author in authors:
+    # authors path
+    text_files_path = data_path+author+"/"
+    # print(text_files_path)
+    # all text files of selected authors
+    chunks = listdir(text_files_path)
+    for text_file in chunks:
+      file = text_files_path+text_file
+      with open(file, 'r', encoding="utf8") as f:
+        text_data.append(f.read())
+        # print(text_data)
+        # print(len(text_data))
+        y.append(author)
+  
+  return text_data, y
 # clean tweets data
 def clean_data_list(data):
     # remove punctuation
@@ -262,7 +282,7 @@ def evaluate_combination(data_path, k, l, n, nb_authors, gram):
                 columns =['l', 'k', 'n', 'Gram', 'Total Authors', 'Accuracy', 'Precision', 'Recall', 'F-score'])
 
     print("Save dataframe of results ... ")
-    df.to_csv("./evaluation/authors3_k"+str(k)+"_n+"+str(n)+"+_l+"+str(l)+"+_+"gram"+.csv")
+    df.to_csv("./evaluation/authors3_k"+str(k)+"_n"+str(n)+"_l"+str(l)+"_"+gram+".csv")
     print("Datframe saved ...")
     print(df)
 
