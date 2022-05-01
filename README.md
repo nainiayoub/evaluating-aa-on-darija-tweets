@@ -14,7 +14,7 @@ The initial proposed approach wass to extract Twitter trends for Morocco using T
 |1. Manually identifying Twitter trends for Morocco.                                                                 |
 |2. Extracttweets for each trend (sorted by Followers Count and Total Tweets).                                       |
 |3. Verify the type of tweets for the top tweet authors extracted in 2.                                              | 
-|4. Save the authors username if the tweets are valid (in Moroccan Darija and total number of tweets is important) . |                        
+|4. Save the authors username if the tweets are valid (in Moroccan Darija and total number of tweets is important).  |                        
 
 
 | Algorithm 2 Downloading and Preprocessing Tweets                                                 |
