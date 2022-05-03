@@ -7,6 +7,7 @@ __Table of contents__
 * [Data Collection](#data-collection)
   * [Obtaining a set of Moroccan Twitter accounts](#obtaining-a-set-of-moroccan-twitter-accounts)
   * [Dataset statistics](#statistics-of-the-moroccan-darija-tweets-aa-dataset)
+* [References](#references)
 
 ### Abstract
 This work aims to apply and assess the existing Authorship Attribution techniques, on Moroccan Arabic (Darija) social media electronic texts (tweets). Authorship Attribution is a stylometry problem that aims to deduce the identity of the authors by examining e-texts only. 
