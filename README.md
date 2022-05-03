@@ -67,3 +67,7 @@ The initial proposed approach wass to extract Twitter trends for Morocco using T
 | A-30   | 10     | 1125.9              | 281               |
 
 
+## References
+1. [Evaluating Author Attribution on Emirati Tweets](https://ieeexplore.ieee.org/document/9167201)
+2. [Fextractor library](https://gitlab.com/mmaakh/fextractor)
+3. [Khonji-Iraqi author Tweets dataset with 30 authors](https://gitlab.com/mmaakh/kit-30)
