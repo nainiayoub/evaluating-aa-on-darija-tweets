@@ -11,63 +11,51 @@ from os import listdir
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
 
-
-data_path_darija = './data/'
-# create a folder data_uas and place chunkified uae data from kit 30 dataset - https://gitlab.com/mmaakh/kit-30
-data_path_uae = './data_uae/'
-authors_darija = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30']
-
 # Loading author tweets and target values into lists
-def group_data(path, authors, nb_authors):
-    chunks = ['01.txt', '02.txt', '03.txt', '04.txt', '05.txt', '06.txt', '07.txt', '08.txt', '09.txt', '10.txt']
+def group_data_tweet(data_path, authors, nb_authors):
     all_tweets = []
     y = []
-    nb_authors = nb_authors - 1
-    # chosing the range of authors
-    for i in range(0, nb_authors):
-        # path for author data    
-        authors_path = path+str(authors[i])+"/"
-        # list of author chunked data
-        author = os.listdir(authors_path)
-        # print(authors_path)
-        for doc in range(len(chunks)):
-            # path for chunked data 
-            file = authors_path+str(chunks[doc])
-            # print(file)
-            # get data from file
+    # authors
+    for author in authors:
+        # authors path
+        text_files_path = data_path+author+"/"
+        # all text files of selected authors
+        chunks = listdir(text_files_path)
+        for text_file in chunks:
+            file = text_files_path+text_file
             with open(file, 'r', encoding="utf8") as f:
-                # list of tweets from chunked data
-                tweets = [line.strip() for line in f]
-                # add tweets to global tweets list
-                all_tweets = all_tweets + tweets
-                # target variable of data chunk
-                y_chunk = [authors[i]]*len(tweets)
-                # add target varianle list to global list
-                y = y + y_chunk
+            # list of tweets from chunked data
+            tweets = [line.strip() for line in f]
+            # add tweets to global tweets list
+            all_tweets = all_tweets + tweets
+            # target variable of data chunk
+            y_chunk = [authors[i]]*len(tweets)
+            # add target varianle list to global list
+            y = y + y_chunk
 
-        # returning list of all tweets with list of target values (authors)
-        return all_tweets, y
+    return text_data, y
 
+# Loading author chunks and target values into lists
 def group_data_folder(data_path, authors, nb_authors):
-  text_data = []
-  y = [] 
-  # authors
-  # authors = listdir(data_path)[:nb_authors]
-  for author in authors:
-    # authors path
-    text_files_path = data_path+author+"/"
-    # print(text_files_path)
-    # all text files of selected authors
-    chunks = listdir(text_files_path)
-    for text_file in chunks:
-      file = text_files_path+text_file
-      with open(file, 'r', encoding="utf8") as f:
-        text_data.append(f.read())
-        # print(text_data)
-        # print(len(text_data))
-        y.append(author)
+    text_data = []
+    y = [] 
+    # authors
+    # authors = listdir(data_path)[:nb_authors]
+    for author in authors:
+        # authors path
+        text_files_path = data_path+author+"/"
+        # print(text_files_path)
+        # all text files of selected authors
+        chunks = listdir(text_files_path)
+        for text_file in chunks:
+            file = text_files_path+text_file
+            with open(file, 'r', encoding="utf8") as f:
+            text_data.append(f.read())
+            # print(text_data)
+            # print(len(text_data))
+            y.append(author)
   
-  return text_data, y
+    return text_data, y
 # clean tweets data
 def clean_data_list(data):
     # remove punctuation
@@ -83,12 +71,6 @@ def get_grams_data_list(data, gram):
     grammed_tweets = [get_grams(tweet, gram) for tweet in data]
 
     return grammed_tweets
-
-# join grams tokens into str
-def join_tokens(data):
-    data_tweets = [' '.join(i[0]) for i in data]
-
-    return data_tweets
 
 # prepare data (applying all function above)
 def prepare_tweets(data_path_darija, authors_darija, gram, nb_authors):
@@ -108,25 +90,6 @@ def prepare_tweets(data_path_darija, authors_darija, gram, nb_authors):
     return data_grm, target
 
 # getting k-skip n-grams vectorization of text
-def vect_grams(data):
-  # get k-skip-ngrams with their count from grams
-  k_skip_data = [getcount_ksngrams(i, k=0, n=1, normalize=True) for i in data]
-  # the keys are already the tokens in grams(data) so no need to extract them
-  # we will extract the count of the kskip ngram into a list
-  all_vect_data = []
-  for g in range(0, data):
-    vect_text = []
-    for k in data[g][0]:
-      if k in k_skip_data[g]:
-        vect_text.append(k_skip_data[g][k])
-
-    all_vect_data.append(vect_text)
-  
-  return all_vect_data
-
-# This is the one
-# Getting k-skip n-grams vectorization of text
-# this is the one
 def vect_norm_grams(data, skips, ng, l):
     # get k-skip-ngrams with their count from grams
     k_skip_data = [getcount_ksngrams(i, k=skips, n=ng, minfreq=l, normalize=True) for i in data]
@@ -158,40 +121,6 @@ def vect_norm_grams(data, skips, ng, l):
     # print("Features length: ", len(X))
 
     return X
-
-def aa_rfs_model(data, target):
-    # split data
-    X_train, X_test, Y_train, Y_test = train_test_split(data, target, test_size=0.2)
-    # prepare data
-    vectorizer = CountVectorizer()
-    vectorizer.fit(X_train)
-    train_data = vectorizer.transform(X_train).toarray()
-    test_data = vectorizer.transform(X_test).toarray()
-    print("data vectorized")
-    # Build classifier
-    clf = RandomForestClassifier(n_estimators=300)
-    # train model
-    clf.fit(train_data, Y_train)
-    print("Model trained")
-    # evaluate model
-    # Get test predictions
-    testPredictions = clf.predict(test_data)
-    testPredictionsProbs = clf.predict_proba(test_data)
-
-    # Calculate metrics
-    accuracy = round(accuracy_score(Y_test, testPredictions) * 100, 2)
-    precision = round(precision_score(Y_test, testPredictions, average = 'macro') * 100, 2)
-    recall = round(recall_score(Y_test, testPredictions, average = 'macro') * 100, 2)
-    fscore = round(f1_score(Y_test, testPredictions, average = 'macro') * 100, 2)
-    confusionMatrix = confusion_matrix(Y_test, testPredictions)
-    # display results
-    # print("Accuarcy: ", accuracy)
-    # print("Precision: ", precision)
-    # print("Recall: ", recall)
-    # print("F-score: ", fscore)
-
-    print("Accuracy: {}% | Precision: {}% | Recall: {}% | F-score: {}".format(accuracy, precision, recall, fscore))
-    print("Confusion matrix: \n", confusionMatrix)
 
 # return the accuracies for all authors combinations of input parameters
 def evaluate_combination(data_path, k, l, n, nb_authors, gram):
@@ -282,25 +211,11 @@ def evaluate_combination(data_path, k, l, n, nb_authors, gram):
                 columns =['l', 'k', 'n', 'Gram', 'Total Authors', 'Accuracy', 'Precision', 'Recall', 'F-score'])
 
     print("Save dataframe of results ... ")
-    df.to_csv("./evaluation/authors3_k"+str(k)+"_n"+str(n)+"_l"+str(l)+"_"+gram+".csv")
+    df.to_csv("./evaluation/authors"+str(nb_authors)+"_k"+str(k)+"_n"+str(n)+"_l"+str(l)+"_"+gram+".csv")
     print("Datframe saved ...")
     print(df)
 
 # Implementation
-# -----------------------------------------------------------------------------------------------
-# gram: pos, word, word-pos
-# gram = 'word-pos'
-# nb_authors = 4
-# tic = time.time()
-# # prepare tweets data
-# data, target = prepare_tweets(data_path_darija, authors_darija, gram, nb_authors)
-# # print(data[:10])
-# aa_rfs_model(data, target)
-# toc = time.time()
-# print("Execution time:", str(1000*(toc-tic)) + "ms")
-# -----------------------------------------------------------------------------------------------
-# buid and evalute models
-# grams = word, k=0, l=1, n=1, authors space = 4
 data_path = './data/'
 n = 1
 k = 0
